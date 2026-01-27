@@ -5,23 +5,21 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { NgForOf, NgIf } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import { AppButtonComponent } from '../../../../shared/components/app-button/app-button.component';
-import { ProductsService } from '../../services/products.service';
-import {
-  PAGE_SIZES_LIST,
-  PRODUCTS_LIST_LABELS,
-} from '../../constants/products-list.constants';
+import { ProductTable } from '../../components/product-table/product-table.component';
+import { SearchInput } from '../../components/search-input/search-input.component';
+import { SelectPageSize } from '../../components/select-page-size/select-page-size.component';
 import { EPageSize } from '../../enums/products-list.enum';
 import { Product } from '../../models/product.model';
+import { ProductsService } from '../../services/products.service';
 
 @Component({
   selector: 'app-products-list',
   standalone: true,
-  imports: [NgForOf, NgIf, RouterLink, AppButtonComponent],
+  imports: [AppButtonComponent, SearchInput, ProductTable, SelectPageSize],
   templateUrl: './products-list.component.html',
   styleUrls: ['./products-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,8 +28,6 @@ export class ProductsListComponent {
   private readonly productsService = inject(ProductsService);
   private readonly router = inject(Router);
 
-  readonly PAGE_SIZES_LIST = PAGE_SIZES_LIST;
-  readonly LABELS = PRODUCTS_LIST_LABELS;
   readonly searchQuery = signal('');
   readonly pageSize = signal(EPageSize.PAGE_SIZE_5);
 
@@ -66,45 +62,12 @@ export class ProductsListComponent {
     };
   });
 
-  readonly logoErrors = signal<Record<string, boolean>>({});
-  readonly openMenuId = signal<string | null>(null);
-
-  trackById(index: number, product: Product): string {
-    return product.id ?? String(index);
-  }
-
-  getLogoKey(product: Product): string {
-    return product.id || `${product.name}-${product.date_release}`;
-  }
-
-  toggleMenu(product: Product): void {
-    const key = product.id;
-    this.openMenuId.update((current) => (current === key ? null : key));
-  }
-
-  hasLogoError(product: Product): boolean {
-    return Boolean(this.logoErrors()[this.getLogoKey(product)]);
-  }
-
-  onLogoError(product: Product): void {
-    const key = this.getLogoKey(product);
-    this.logoErrors.update((state) => ({ ...state, [key]: true }));
-  }
-
-  getInitials(name: string): string {
-    const parts = name.trim().split(/\s+/).slice(0, 2);
-    return parts.map((part) => part.charAt(0).toUpperCase()).join('');
-  }
-
   onSearch(value: string): void {
     this.searchQuery.set(value);
   }
 
-  onPageSizeChange(value: string): void {
-    const nextValue = Number.parseInt(value, 10);
-    if (PAGE_SIZES_LIST.includes(nextValue as EPageSize)) {
-      this.pageSize.set(nextValue);
-    }
+  onPageSizeChange(value: EPageSize): void {
+    this.pageSize.set(value);
   }
 
   onAdd(): void {

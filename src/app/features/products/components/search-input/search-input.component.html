@@ -1,0 +1,9 @@
+<input
+  #search
+  class="search-input"
+  type="search"
+  placeholder="Search..."
+  aria-label="Search products"
+  [value]="searchQuery()"
+  (input)="setSearch(search.value)" 
+/>

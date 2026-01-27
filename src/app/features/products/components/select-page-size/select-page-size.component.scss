@@ -1,0 +1,14 @@
+.page-size {
+  border: 1px solid #d7dbe7;
+  border-radius: 3px;
+  padding: 6px 10px;
+  background: #fff;
+  color: var(--text);
+  font-size: 13px;
+  width: 60px;
+}
+
+.page-size:focus {
+  outline: 2px solid rgba(33, 63, 117, 0.25);
+  border-color: #aab3c9;
+}

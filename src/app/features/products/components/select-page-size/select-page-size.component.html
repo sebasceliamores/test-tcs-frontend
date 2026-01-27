@@ -1,0 +1,10 @@
+<select
+  #pageSizeSelect
+  class="page-size"
+  [value]="pageSize()"
+  (input)="onPageSizeChange(pageSizeSelect.value)"
+>
+  <option *ngFor="let size of PAGE_SIZES_LIST" [value]="size">
+    {{ size }}
+  </option>
+</select>   
