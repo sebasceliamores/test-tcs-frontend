@@ -59,6 +59,12 @@ export class ProductsService {
       .pipe(tap(() => this.clearProductsCache()));
   }
 
+  deleteProduct(id: string): Observable<void> {
+    return this.http
+      .delete<void>(`${this.productsUrl}/${id}`)
+      .pipe(tap(() => this.clearProductsCache()));
+  }
+
   checkIdExists(id: string): Observable<boolean> {
     return this.http.get<boolean>(`${this.productsUrl}/verification/${id}`);
   }

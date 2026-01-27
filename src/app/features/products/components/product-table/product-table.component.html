@@ -107,6 +107,15 @@
           >
             Editar
           </a>
+          <button
+            class="menu-item menu-item--danger"
+            type="button"
+            role="menuitem"
+            data-testid="menu-delete"
+            (click)="openDeleteModal(product)"
+          >
+            Eliminar
+          </button>
         </div>
       </div>
     </div>
@@ -120,3 +129,10 @@
     </div>
   </ng-container>
 </div>
+
+<app-delete-product-modal
+  *ngIf="deleteTarget() as target"
+  [productName]="target.name"
+  (cancel)="closeDeleteModal()"
+  (confirm)="confirmDelete()"
+></app-delete-product-modal>

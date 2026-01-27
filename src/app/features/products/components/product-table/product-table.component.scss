@@ -97,10 +97,23 @@
   font-size: 13px;
   color: var(--text);
   text-decoration: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 }
 
 .menu-item:hover {
   background: #f5f7fb;
+}
+
+.menu-item--danger {
+  color: #b4232a;
+}
+
+.menu-item--danger:hover {
+  background: #fdeced;
 }
 
 .logo-circle {

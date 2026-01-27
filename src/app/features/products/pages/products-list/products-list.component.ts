@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { catchError, map, of } from 'rxjs';
+import { Subject, catchError, map, of, startWith, switchMap } from 'rxjs';
 import { AppButtonComponent } from '../../../../shared/components/app-button/app-button.component';
 import { ProductTable } from '../../components/product-table/product-table.component';
 import { SearchInput } from '../../components/search-input/search-input.component';
@@ -27,17 +27,23 @@ import { ProductsService } from '../../services/products.service';
 export class ProductsListComponent {
   private readonly productsService = inject(ProductsService);
   private readonly router = inject(Router);
+  private readonly reload$ = new Subject<void>();
 
   readonly searchQuery = signal('');
   readonly pageSize = signal(EPageSize.PAGE_SIZE_5);
 
-  private readonly productsState$ = this.productsService.getProducts().pipe(
-    map((products) => ({ products, error: '' as string })),
-    catchError(() =>
-      of({
-        products: [] as Product[],
-        error: 'No se pudo cargar los productos.',
-      }),
+  private readonly productsState$ = this.reload$.pipe(
+    startWith(void 0),
+    switchMap(() =>
+      this.productsService.getProducts().pipe(
+        map((products) => ({ products, error: '' as string })),
+        catchError(() =>
+          of({
+            products: [] as Product[],
+            error: 'No se pudo cargar los productos.',
+          }),
+        ),
+      ),
     ),
   );
 
@@ -72,6 +78,14 @@ export class ProductsListComponent {
 
   onAdd(): void {
     this.router.navigateByUrl('/products/new');
+  }
+
+  onDelete(product: Product): void {
+    this.productsService.deleteProduct(product.id).subscribe({
+      next: () => {
+        this.reload$.next();
+      },
+    });
   }
 
   private matchesQuery(product: Product, query: string): boolean {

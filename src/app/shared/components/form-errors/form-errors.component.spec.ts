@@ -99,4 +99,53 @@ describe('FormErrorsComponent', () => {
     expect(errors.length).toBe(1);
     expect(errors[0].textContent).toContain('Fecha invalida');
   });
+
+  it('shows maxlength message with required length', () => {
+    const fixture = TestBed.createComponent(FormErrorsComponent);
+    const component = fixture.componentInstance;
+    const control = new FormControl('123456', Validators.maxLength(3));
+
+    control.markAsTouched();
+    control.updateValueAndValidity();
+
+    component.control = control;
+    fixture.detectChanges();
+
+    const errors = getErrors(fixture);
+    expect(errors.length).toBe(1);
+    expect(errors[0].textContent).toContain('Maximo 3 caracteres');
+  });
+
+  it('renders server error when provided as string', () => {
+    const fixture = TestBed.createComponent(FormErrorsComponent);
+    const component = fixture.componentInstance;
+    const control = new FormControl('');
+
+    control.setErrors({ server: 'Error del servidor' });
+    control.markAsDirty();
+
+    component.control = control;
+    fixture.detectChanges();
+
+    const errors = getErrors(fixture);
+    expect(errors.length).toBe(1);
+    expect(errors[0].textContent).toContain('Error del servidor');
+  });
+
+  it('renders all server errors when provided as array', () => {
+    const fixture = TestBed.createComponent(FormErrorsComponent);
+    const component = fixture.componentInstance;
+    const control = new FormControl('');
+
+    control.setErrors({ server: ['Error A', 'Error B'] });
+    control.markAsDirty();
+
+    component.control = control;
+    fixture.detectChanges();
+
+    const errors = getErrors(fixture);
+    expect(errors.length).toBe(2);
+    expect(errors[0].textContent).toContain('Error A');
+    expect(errors[1].textContent).toContain('Error B');
+  });
 });

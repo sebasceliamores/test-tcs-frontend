@@ -1,0 +1,36 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(63, 65, 74, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 16px;
+}
+
+.modal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 345px;
+  padding: 24px 28px 28px;
+}
+
+.modal-title {
+  margin: 0 0 28px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: normal;   
+  word-break: break-word;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 17%;
+  justify-content: flex-start;
+}
+
+.modal-actions app-button {
+  flex: 1;
+}
