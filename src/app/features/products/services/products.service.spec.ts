@@ -148,6 +148,8 @@ describe('ProductsService', () => {
     expect(req.request.method).toBe('GET');
     req.flush({ data: [createProduct({ id: 'p1' })] });
 
-    await expect(promise).rejects.toThrow('Producto no encontrado.');
+    await expect(promise).rejects.toThrow(
+      'Producto no encontrado con ese identificador.',
+    );
   });
 });

@@ -87,7 +87,7 @@ describe('ProductFormComponent', () => {
     const error = fixture.nativeElement.querySelector(
       '[data-testid="load-error"]',
     )?.textContent;
-    expect(error).toContain('No se pudo cargar');
+    expect(error).toContain('fail');
     expect(component.isEdit()).toBe(false);
   });
 

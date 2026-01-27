@@ -43,14 +43,17 @@ export class ProductsService {
       map((products) => products.find((product) => product.id === id)),
       map((product) => {
         if (!product) {
-          throw new Error('Producto no encontrado.');
+          throw new Error('Producto no encontrado con ese identificador.');
         }
         return product;
       }),
     );
   }
 
-  updateProduct(id: string, payload: ProductUpdatePayload): Observable<Product> {
+  updateProduct(
+    id: string,
+    payload: ProductUpdatePayload,
+  ): Observable<Product> {
     return this.http
       .put<Product>(`${this.productsUrl}/${id}`, payload)
       .pipe(tap(() => this.clearProductsCache()));

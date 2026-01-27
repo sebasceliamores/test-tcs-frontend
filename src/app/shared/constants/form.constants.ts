@@ -11,7 +11,7 @@ export const ONE_YEAR_AFTER_MESSAGE =
 
 export const MESSAGE_ERRORS: Record<
   string,
-  string | ((error: unknown) => string)
+  string | ((error: unknown) => string | string[] | null)
 > = {
   required: REQUIRED_FIELD_MESSAGE,
   minlength: (error) => ValidatorUtil.withCount(MIN_LENGTH_MESSAGE, error),
@@ -20,4 +20,10 @@ export const MESSAGE_ERRORS: Record<
   invalidDate: INVALID_DATE_MESSAGE,
   minToday: MIN_TODAY_MESSAGE,
   oneYearAfterRelease: ONE_YEAR_AFTER_MESSAGE,
+  server: (error) => {
+    if (Array.isArray(error)) {
+      return error.filter((message) => typeof message === 'string');
+    }
+    return typeof error === 'string' ? error : null;
+  },
 };

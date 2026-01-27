@@ -29,17 +29,22 @@ export class FormErrorsComponent {
     const errors = this.control?.errors ?? null;
     if (!errors) return [];
 
-    const list = Object.keys(errors)
-      .map((key) => this.resolveMessage(this.messages[key], errors[key]))
-      .filter((m): m is string => Boolean(m));
+    const list = Object.keys(errors).flatMap((key) => {
+      const message = this.resolveMessage(this.messages[key], errors[key]);
+      if (!message) return [];
+      return Array.isArray(message) ? message : [message];
+    });
 
     return this.showAll ? list : list.slice(0, 1);
   }
 
   private resolveMessage(
-    message: string | ((error: unknown) => string) | undefined,
+    message:
+      | string
+      | ((error: unknown) => string | string[] | null)
+      | undefined,
     error: unknown,
-  ): string | null {
+  ): string | string[] | null {
     if (!message) return null;
     return typeof message === 'function' ? message(error) : message;
   }

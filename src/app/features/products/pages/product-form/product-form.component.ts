@@ -25,6 +25,11 @@ import {
   oneYearAfterReleaseValidator,
 } from '../../../../shared/validators/date.validators';
 import { formatDate, parseDateValue } from '../../../../shared/utils/date.util';
+import {
+  applyServerFieldErrors,
+  clearServerErrors,
+  parseServerErrors,
+} from '../../../../shared/utils/server-errors.util';
 import { ProductsService } from '../../services/products.service';
 import {
   ProductPayload,
@@ -79,7 +84,7 @@ export class ProductFormComponent {
     name: this.formBuilder.control(PRODUCT_FORM_DEFAULT.name, {
       validators: [
         Validators.required,
-        Validators.minLength(6),
+        Validators.minLength(5),
         Validators.maxLength(100),
       ],
       nonNullable: true,
@@ -128,6 +133,7 @@ export class ProductFormComponent {
   onSubmit(): void {
     this.submitted.set(true);
     this.submitError.set('');
+    clearServerErrors(this.form.controls);
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -144,6 +150,7 @@ export class ProductFormComponent {
   onReset(): void {
     this.submitted.set(false);
     this.submitError.set('');
+    clearServerErrors(this.form.controls);
     const resetValue = this.isEdit()
       ? this.initialValue()
       : PRODUCT_FORM_DEFAULT;
@@ -172,8 +179,8 @@ export class ProductFormComponent {
           this.onReset();
           this.router.navigateByUrl('/');
         },
-        error: () => {
-          this.submitError.set(PRODUCT_FORM_MESSAGES.createError);
+        error: (error) => {
+          this.handleSubmitError(error, PRODUCT_FORM_MESSAGES.createError);
         },
       });
   }
@@ -196,8 +203,8 @@ export class ProductFormComponent {
         next: () => {
           this.router.navigateByUrl('/');
         },
-        error: () => {
-          this.submitError.set(PRODUCT_FORM_MESSAGES.updateError);
+        error: (error) => {
+          this.handleSubmitError(error, PRODUCT_FORM_MESSAGES.updateError);
         },
       });
   }
@@ -226,8 +233,8 @@ export class ProductFormComponent {
             this.form.controls.date_release.markAsTouched();
           }
         },
-        error: () => {
-          this.loadError.set(PRODUCT_FORM_MESSAGES.loadError);
+        error: (error) => {
+          this.loadError.set(error.message ?? PRODUCT_FORM_MESSAGES.loadError);
         },
       });
   }
@@ -244,6 +251,20 @@ export class ProductFormComponent {
     nextYear.setFullYear(nextYear.getFullYear() + 1);
     const formatted = formatDate(nextYear);
     this.form.controls.date_revision.setValue(formatted, { emitEvent: false });
+  }
+
+  private handleSubmitError(error: unknown, fallbackMessage: string): void {
+    const { fieldErrors, generalErrors } = parseServerErrors(error);
+    if (fieldErrors.size > 0) {
+      applyServerFieldErrors(this.form.controls, fieldErrors);
+      if (generalErrors.length === 0) {
+        this.submitError.set('');
+        return;
+      }
+    }
+    this.submitError.set(
+      generalErrors.length > 0 ? generalErrors.join(' ') : fallbackMessage,
+    );
   }
 
   private idExistsValidator(): AsyncValidatorFn {
