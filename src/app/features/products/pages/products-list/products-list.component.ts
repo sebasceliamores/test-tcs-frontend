@@ -15,6 +15,8 @@ import { SelectPageSize } from '../../components/select-page-size/select-page-si
 import { EPageSize } from '../../enums/products-list.enum';
 import { Product } from '../../models/product.model';
 import { ProductsService } from '../../services/products.service';
+import { parseServerErrors } from '../../../../shared/utils/server-errors.util';
+import { ErrorBannerService } from '../../../../shared/services/error-banner.service';
 
 @Component({
   selector: 'app-products-list',
@@ -28,6 +30,7 @@ export class ProductsListComponent {
   private readonly productsService = inject(ProductsService);
   private readonly router = inject(Router);
   private readonly reload$ = new Subject<void>();
+  private readonly banner = inject(ErrorBannerService);
 
   readonly searchQuery = signal('');
   readonly pageSize = signal(EPageSize.PAGE_SIZE_5);
@@ -97,6 +100,11 @@ export class ProductsListComponent {
     this.productsService.deleteProduct(product.id).subscribe({
       next: () => {
         this.reload$.next();
+      },
+      error: (error) => {
+        const { generalErrors } = parseServerErrors(error);
+        const message = generalErrors[0] ?? 'Error al intentar eliminar';
+        this.banner.show(message);
       },
     });
   }

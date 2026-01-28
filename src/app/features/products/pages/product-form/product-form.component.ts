@@ -35,6 +35,7 @@ import {
 } from '../../models/product.model';
 import { ProductsService } from '../../services/products.service';
 import { parseServerErrors } from '../../../../shared/utils/server-errors.util';
+import { ErrorBannerService } from '../../../../shared/services/error-banner.service';
 
 @Component({
   selector: 'app-product-form',
@@ -56,10 +57,9 @@ export class ProductFormComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly formBuilder = inject(FormBuilder);
-
+  private readonly banner = inject(ErrorBannerService);
   readonly submitted = signal(false);
   readonly isSubmitting = signal(false);
-  readonly loadError = signal('');
   readonly isEdit = signal(false);
   readonly title = computed(() =>
     this.isEdit() ? 'Formulario de Edición' : 'Formulario de Registro',
@@ -176,7 +176,7 @@ export class ProductFormComponent {
   private submitEdit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      this.loadError.set(PRODUCT_FORM_MESSAGES.notFoundError);
+      this.banner.show(PRODUCT_FORM_MESSAGES.notFoundError);
       return;
     }
     const payload = this.getUpdatePayload();
@@ -220,9 +220,8 @@ export class ProductFormComponent {
         },
         error: (error) => {
           const { generalErrors } = parseServerErrors(error);
-          this.loadError.set(
-            generalErrors[0] ?? PRODUCT_FORM_MESSAGES.loadError,
-          );
+          const message = generalErrors[0] ?? PRODUCT_FORM_MESSAGES.loadError;
+          this.banner.show(message);
         },
       });
   }

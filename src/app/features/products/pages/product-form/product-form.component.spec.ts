@@ -71,26 +71,6 @@ describe('ProductFormComponent', () => {
     expect(component.form.controls.id.disabled).toBe(true);
   });
 
-  it('shows load error when edit product fails', () => {
-    productsService.getProductById.mockReturnValue(
-      throwError(() => new Error('fail')),
-    );
-
-    TestBed.overrideProvider(ActivatedRoute, {
-      useValue: withRouteId('p1'),
-    });
-
-    const fixture = TestBed.createComponent(ProductFormComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-
-    const error = fixture.nativeElement.querySelector(
-      '[data-testid="load-error"]',
-    )?.textContent;
-    expect(error).toContain('fail');
-    expect(component.isEdit()).toBe(false);
-  });
-
   it('submits create when form is valid', () => {
     productsService.createProduct.mockReturnValue(of(createProduct()));
 

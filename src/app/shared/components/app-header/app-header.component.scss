@@ -27,9 +27,8 @@
   position: absolute;
   width: 10px;
   height: 6px;
-  border: 2px solid var(--brand);
   border-radius: 3px;
   left: 7px;
   top: 5px;
-  background: transparent;
+  background: var(--brand);
 }
