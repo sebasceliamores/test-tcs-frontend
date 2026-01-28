@@ -36,20 +36,32 @@ export class ProductsListComponent {
     startWith(void 0),
     switchMap(() =>
       this.productsService.getProducts().pipe(
-        map((products) => ({ products, error: '' as string })),
+        map((products) => ({ products, error: '' as string, loading: false })),
         catchError(() =>
           of({
             products: [] as Product[],
-            error: 'No se pudo cargar los productos.',
+            error: '',
+            loading: false,
           }),
         ),
+        startWith({
+          products: [] as Product[],
+          error: '' as string,
+          loading: true,
+        }),
       ),
     ),
   );
 
   private readonly productsState = toSignal(this.productsState$, {
-    initialValue: { products: [] as Product[], error: '' as string },
+    initialValue: {
+      products: [] as Product[],
+      error: '' as string,
+      loading: true,
+    },
   });
+
+  readonly isLoading = computed(() => this.productsState().loading);
 
   readonly productsView = computed(() => {
     const state = this.productsState();
@@ -65,6 +77,7 @@ export class ProductsListComponent {
       shown: visible.length,
       pageSize: size,
       error: state.error,
+      loading: state.loading,
     };
   });
 

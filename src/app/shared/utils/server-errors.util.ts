@@ -1,92 +1,71 @@
-import { AbstractControl } from '@angular/forms';
-
 export type ServerErrorResult = {
-  fieldErrors: Map<string, string[]>;
   generalErrors: string[];
 };
 
 export const parseServerErrors = (error: unknown): ServerErrorResult => {
-  const fieldErrors = new Map<string, string[]>();
-  const generalErrors: string[] = [];
-  const payload = extractErrorBody(error);
+  const payload = getPayload(error);
+  const status =
+    typeof (error as { status?: unknown })?.status === 'number'
+      ? (error as { status: number }).status
+      : undefined;
 
-  if (typeof payload === 'string') {
-    generalErrors.push(payload);
-    return { fieldErrors, generalErrors };
-  }
+  const message =
+    firstConstraintMessage(payload?.errors) ??
+    cleanMessage(payload?.message) ??
+    cleanMessage((error as { message?: unknown })?.message) ??
+    statusMessageFromCode(status) ??
+    'Ocurrio un error inesperado.';
 
-  if (!payload || typeof payload !== 'object') {
-    return { fieldErrors, generalErrors };
-  }
-
-  const body = payload as {
-    message?: unknown;
-    errors?: Array<{
-      property?: unknown;
-      constraints?: Record<string, unknown>;
-    }>;
-  };
-
-  if (typeof body.message === 'string') {
-    generalErrors.push(body.message);
-  }
-
-  const errors = Array.isArray(body.errors) ? body.errors : [];
-  errors.forEach((item) => {
-    const property = typeof item.property === 'string' ? item.property : '';
-    const constraints =
-      item.constraints && typeof item.constraints === 'object'
-        ? item.constraints
-        : null;
-    const messages = constraints
-      ? Object.values(constraints).filter(
-          (value): value is string => typeof value === 'string',
-        )
-      : [];
-    if (messages.length === 0) {
-      return;
-    }
-    if (property) {
-      const existing = fieldErrors.get(property) ?? [];
-      fieldErrors.set(property, [...existing, ...messages]);
-      return;
-    }
-    generalErrors.push(...messages);
-  });
-
-  return { fieldErrors, generalErrors };
+  return { generalErrors: [message] };
 };
 
-export const applyServerFieldErrors = (
-  controls: Record<string, AbstractControl>,
-  fieldErrors: Map<string, string[]>,
-): void => {
-  fieldErrors.forEach((messages, key) => {
-    const control = controls[key];
-    if (!control) return;
-    const current = control.errors ?? {};
-    const payload = messages.length === 1 ? messages[0] : messages;
-    control.setErrors({ ...current, server: payload });
-  });
-};
-
-export const clearServerErrors = (
-  controls: Record<string, AbstractControl>,
-): void => {
-  Object.values(controls).forEach((control) => {
-    const errors = control.errors ?? null;
-    if (!errors || !('server' in errors)) return;
-    const { server, ...rest } = errors as Record<string, unknown>;
-    control.setErrors(Object.keys(rest).length > 0 ? rest : null);
-  });
-};
-
-const extractErrorBody = (error: unknown): unknown => {
+const getPayload = (
+  error: unknown,
+): { message?: unknown; errors?: unknown } => {
   if (!error || typeof error !== 'object') {
-    return error;
+    return { message: error };
   }
-  if ('error' in error) {
-    return (error as { error?: unknown }).error ?? error;
-  }
-  return error;
+  const payload = 'error' in error ? error.error : error;
+  return (payload ?? {}) as { message?: unknown; errors?: unknown };
 };
+
+const firstConstraintMessage = (errors: unknown): string | null => {
+  if (!Array.isArray(errors)) {
+    return null;
+  }
+  for (const item of errors) {
+    const constraints =
+      item && typeof item === 'object' && 'constraints' in item
+        ? (item as { constraints?: unknown }).constraints
+        : null;
+    if (!constraints || typeof constraints !== 'object') {
+      continue;
+    }
+    const message = Object.values(constraints).find(isString);
+    if (message) {
+      return message;
+    }
+  }
+  return null;
+};
+
+const cleanMessage = (value: unknown): string | null => {
+  if (!isString(value)) {
+    return null;
+  }
+  return value.startsWith('Http failure response') ? null : value;
+};
+
+const statusMessageFromCode = (status?: number): string | null => {
+  if (status === 0) return 'No hay conexion con el servidor.';
+  if (status === 404) return 'No se encontro el recurso.';
+  if (status === 400) return 'Solicitud invalida.';
+  if (status === 409) return 'Conflicto en la solicitud.';
+  if (typeof status === 'number' && status >= 500) {
+    return 'Error interno del servidor.';
+  }
+  return null;
+};
+
+const isString = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim().length > 0;

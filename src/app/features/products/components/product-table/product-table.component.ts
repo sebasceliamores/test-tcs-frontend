@@ -10,10 +10,17 @@ import { PRODUCTS_LIST_LABELS } from '../../constants/products-list.constants';
 import { NgForOf, NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DeleteProductModalComponent } from '../delete-product-modal/delete-product-modal.component';
+import { ProductTableSkeletonComponent } from '../product-table-skeleton/product-table-skeleton.component';
 
 @Component({
   selector: 'product-table',
-  imports: [NgForOf, NgIf, RouterLink, DeleteProductModalComponent],
+  imports: [
+    NgForOf,
+    NgIf,
+    RouterLink,
+    DeleteProductModalComponent,
+    ProductTableSkeletonComponent,
+  ],
   templateUrl: './product-table.component.html',
   styleUrl: './product-table.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +29,8 @@ export class ProductTable {
   productList = input<Product[]>([]);
   errorMessage = input<string | null>(null);
   deleteRequested = output<Product>();
+  isLoading = input(false);
+  skeletonCount = input(5);
 
   readonly openMenuId = signal<string | null>(null);
   readonly logoErrors = signal<Record<string, boolean>>({});

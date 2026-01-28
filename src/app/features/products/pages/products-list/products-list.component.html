@@ -11,6 +11,8 @@
       <product-table
         [productList]="productsView().products"
         [errorMessage]="productsView().error"
+        [isLoading]="isLoading()"
+        [skeletonCount]="productsView().pageSize"
         (deleteRequested)="onDelete($event)"
       ></product-table>
 

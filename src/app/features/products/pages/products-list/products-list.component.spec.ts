@@ -127,21 +127,6 @@ describe('ProductsListComponent', () => {
     expect(rows.length).toBe(10);
   });
 
-  it('shows an error message when loading fails', () => {
-    productsService.getProducts.mockReturnValue(
-      throwError(() => new Error('fail'))
-    );
-
-    const fixture = TestBed.createComponent(ProductsListComponent);
-    fixture.detectChanges();
-
-    const error = queryByTestId(
-      fixture,
-      PRODUCTS_LIST_TEST_IDS.productsError
-    )?.textContent;
-    expect(error).toContain('No se pudo cargar los productos.');
-  });
-
   it('shows empty state when there are no products', () => {
     productsService.getProducts.mockReturnValue(of([]));
 

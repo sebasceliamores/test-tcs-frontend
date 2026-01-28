@@ -1,3 +1,4 @@
+import { NgClass, NgIf } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,7 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { NgClass, NgIf } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -16,29 +17,24 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, finalize, map, of, switchMap, timer } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { FormErrorsComponent } from '../../../../shared/components/form-errors/form-errors.component';
 import { AppButtonComponent } from '../../../../shared/components/app-button/app-button.component';
+import { FormErrorsComponent } from '../../../../shared/components/form-errors/form-errors.component';
+import { formatDate, parseDateValue } from '../../../../shared/utils/date.util';
 import {
   minTodayValidator,
   oneYearAfterReleaseValidator,
 } from '../../../../shared/validators/date.validators';
-import { formatDate, parseDateValue } from '../../../../shared/utils/date.util';
-import {
-  applyServerFieldErrors,
-  clearServerErrors,
-  parseServerErrors,
-} from '../../../../shared/utils/server-errors.util';
-import { ProductsService } from '../../services/products.service';
-import {
-  ProductPayload,
-  ProductUpdatePayload,
-} from '../../models/product.model';
 import {
   PRODUCT_FORM_DEFAULT,
   PRODUCT_FORM_MESSAGES,
 } from '../../constants/product-form.constants';
+import {
+  ProductPayload,
+  ProductUpdatePayload,
+} from '../../models/product.model';
+import { ProductsService } from '../../services/products.service';
+import { parseServerErrors } from '../../../../shared/utils/server-errors.util';
 
 @Component({
   selector: 'app-product-form',
@@ -63,7 +59,6 @@ export class ProductFormComponent {
 
   readonly submitted = signal(false);
   readonly isSubmitting = signal(false);
-  readonly submitError = signal('');
   readonly loadError = signal('');
   readonly isEdit = signal(false);
   readonly title = computed(() =>
@@ -132,8 +127,6 @@ export class ProductFormComponent {
 
   onSubmit(): void {
     this.submitted.set(true);
-    this.submitError.set('');
-    clearServerErrors(this.form.controls);
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -149,8 +142,6 @@ export class ProductFormComponent {
 
   onReset(): void {
     this.submitted.set(false);
-    this.submitError.set('');
-    clearServerErrors(this.form.controls);
     const resetValue = this.isEdit()
       ? this.initialValue()
       : PRODUCT_FORM_DEFAULT;
@@ -179,16 +170,13 @@ export class ProductFormComponent {
           this.onReset();
           this.router.navigateByUrl('/');
         },
-        error: (error) => {
-          this.handleSubmitError(error, PRODUCT_FORM_MESSAGES.createError);
-        },
       });
   }
 
   private submitEdit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      this.submitError.set(PRODUCT_FORM_MESSAGES.notFoundError);
+      this.loadError.set(PRODUCT_FORM_MESSAGES.notFoundError);
       return;
     }
     const payload = this.getUpdatePayload();
@@ -202,9 +190,6 @@ export class ProductFormComponent {
       .subscribe({
         next: () => {
           this.router.navigateByUrl('/');
-        },
-        error: (error) => {
-          this.handleSubmitError(error, PRODUCT_FORM_MESSAGES.updateError);
         },
       });
   }
@@ -234,7 +219,10 @@ export class ProductFormComponent {
           }
         },
         error: (error) => {
-          this.loadError.set(error.message ?? PRODUCT_FORM_MESSAGES.loadError);
+          const { generalErrors } = parseServerErrors(error);
+          this.loadError.set(
+            generalErrors[0] ?? PRODUCT_FORM_MESSAGES.loadError,
+          );
         },
       });
   }
@@ -251,20 +239,6 @@ export class ProductFormComponent {
     nextYear.setFullYear(nextYear.getFullYear() + 1);
     const formatted = formatDate(nextYear);
     this.form.controls.date_revision.setValue(formatted, { emitEvent: false });
-  }
-
-  private handleSubmitError(error: unknown, fallbackMessage: string): void {
-    const { fieldErrors, generalErrors } = parseServerErrors(error);
-    if (fieldErrors.size > 0) {
-      applyServerFieldErrors(this.form.controls, fieldErrors);
-      if (generalErrors.length === 0) {
-        this.submitError.set('');
-        return;
-      }
-    }
-    this.submitError.set(
-      generalErrors.length > 0 ? generalErrors.join(' ') : fallbackMessage,
-    );
   }
 
   private idExistsValidator(): AsyncValidatorFn {

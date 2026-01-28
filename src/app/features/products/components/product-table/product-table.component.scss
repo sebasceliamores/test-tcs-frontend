@@ -1,18 +1,30 @@
-.table {
+.table-scroll {
   overflow-x: auto;
+  overflow-y: visible;
+}
+
+.table {
   background: #fff;
+  padding-bottom: 66px;
 }
 
 .row {
+  --product-table-columns: 90px 1.6fr 2fr 1.1fr 1.2fr 48px;
+  --product-table-gap: 12px;
+  --product-table-padding: 12px 16px;
+  --product-table-font-size: 14px;
+  --product-table-min-width: 760px;
+  --product-table-columns-mobile: 60px 1.2fr 1.4fr 1fr 1fr 40px;
+  --product-table-font-size-mobile: 13px;
   display: grid;
-  grid-template-columns: 90px 1.6fr 2fr 1.1fr 1.2fr 48px;
-  gap: 12px;
-  padding: 12px 16px;
+  grid-template-columns: var(--product-table-columns);
+  gap: var(--product-table-gap);
+  padding: var(--product-table-padding);
   align-items: center;
   border-bottom: 1px solid #eef1f7;
-  font-size: 14px;
+  font-size: var(--product-table-font-size);
   color: var(--text);
-  min-width: 760px;
+  min-width: var(--product-table-min-width);
 }
 
 .row.header {
@@ -88,7 +100,7 @@
   box-shadow: 0 10px 24px rgba(24, 32, 56, 0.12);
   padding: 6px 0;
   min-width: 140px;
-  z-index: 5;
+  z-index: 20;
 }
 
 .menu-item {
@@ -155,8 +167,8 @@
 
 @media (max-width: 900px) {
   .row {
-    grid-template-columns: 60px 1.2fr 1.4fr 1fr 1fr 40px;
-    font-size: 13px;
+    grid-template-columns: var(--product-table-columns-mobile);
+    font-size: var(--product-table-font-size-mobile);
   }
 }
 

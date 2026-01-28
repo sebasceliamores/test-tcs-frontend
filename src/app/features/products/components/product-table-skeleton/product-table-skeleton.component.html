@@ -1,0 +1,25 @@
+<div
+  class="row skeleton"
+  *ngFor="let _ of skeletonRows(); trackBy: trackByIndex"
+  data-testid="products-skeleton"
+  aria-hidden="true"
+>
+  <div class="cell logo">
+    <span class="skeleton-block skeleton-circle"></span>
+  </div>
+  <div class="cell name">
+    <span class="skeleton-block skeleton-text"></span>
+  </div>
+  <div class="cell description">
+    <span class="skeleton-block skeleton-text wide"></span>
+  </div>
+  <div class="cell date">
+    <span class="skeleton-block skeleton-text small"></span>
+  </div>
+  <div class="cell date">
+    <span class="skeleton-block skeleton-text small"></span>
+  </div>
+  <div class="cell menu">
+    <span class="skeleton-block skeleton-dot"></span>
+  </div>
+</div>
